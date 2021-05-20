@@ -1,16 +1,15 @@
 package paginator
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/iancoleman/strcase"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 
-	"github.com/pilagod/gorm-cursor-paginator/v2/cursor"
-	"github.com/pilagod/gorm-cursor-paginator/v2/internal/util"
+	"github.com/hashicorp/gorm-cursor-paginator/cursor"
+	"github.com/hashicorp/gorm-cursor-paginator/internal/util"
 )
 
 // New creates paginator
@@ -72,13 +71,12 @@ func (p *Paginator) Paginate(db *gorm.DB, dest interface{}) (result *gorm.DB, c 
 	if err = p.validate(dest); err != nil {
 		return
 	}
-	dbCtx := db.WithContext(context.Background())
-	p.setup(dbCtx, dest)
+	p.setup(db, dest)
 	fields, err := p.decodeCursor(dest)
 	if err != nil {
 		return
 	}
-	if result = p.appendPagingQuery(dbCtx, fields).Find(dest); result.Error != nil {
+	if result = p.appendPagingQuery(db, fields).Find(dest); result.Error != nil {
 		return
 	}
 	// dest must be a pointer type or gorm will panic above
@@ -124,10 +122,7 @@ func (p *Paginator) setup(db *gorm.DB, dest interface{}) {
 	for i := range p.rules {
 		if p.rules[i].SQLRepr == "" {
 			if sqlTable == "" {
-				// https://stackoverflow.com/questions/51999441/how-to-get-a-table-name-from-a-model-in-gorm
-				stmt := &gorm.Statement{DB: db}
-				stmt.Parse(dest)
-				sqlTable = stmt.Schema.Table
+				sqlTable = db.NewScope(dest).TableName()
 			}
 			sqlKey := p.parseSQLKey(dest, p.rules[i].Key)
 			p.rules[i].SQLRepr = fmt.Sprintf("%s.%s", sqlTable, sqlKey)

@@ -23,7 +23,7 @@ Installation
 ------------
 
 ```sh
-go get -u github.com/pilagod/gorm-cursor-paginator/v2
+go get -u github.com/hashicorp/gorm-cursor-paginator/v2
 ```
 
 Usage By Example
@@ -42,7 +42,7 @@ We need to construct a `paginator.Paginator` based on fields of `User` struct. F
 
 ```go
 import (
-   "github.com/pilagod/gorm-cursor-paginator/v2/paginator"
+   "github.com/hashicorp/gorm-cursor-paginator/v2/paginator"
 )
 ```
 
@@ -176,9 +176,9 @@ type Cursor struct {
 
 That's all! Enjoy paginating in the GORM world. :tada:
 
-> For more paginating examples, please checkout [exmaple/main.go](https://github.com/pilagod/gorm-cursor-paginator/blob/master/example/main.go) and [paginator/paginator_paginate_test.go](https://github.com/pilagod/gorm-cursor-paginator/blob/master/paginator/paginator_paginate_test.go)
+> For more paginating examples, please checkout [exmaple/main.go](https://github.com/hashicorp/gorm-cursor-paginator/blob/master/example/main.go) and [paginator/paginator_paginate_test.go](https://github.com/hashicorp/gorm-cursor-paginator/blob/master/paginator/paginator_paginate_test.go)
 >
-> For manually encoding/decoding cursor exmaples, please checkout [cursor/encoding_test.go](https://github.com/pilagod/gorm-cursor-paginator/blob/master/cursor/encoding_test.go)
+> For manually encoding/decoding cursor exmaples, please checkout [cursor/encoding_test.go](https://github.com/hashicorp/gorm-cursor-paginator/blob/master/cursor/encoding_test.go)
 
 Known Issues
 ------------

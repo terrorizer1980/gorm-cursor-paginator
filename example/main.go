@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
-	"github.com/pilagod/gorm-cursor-paginator/v2/paginator"
+	"github.com/hashicorp/gorm-cursor-paginator/paginator"
 )
 
 // Product for product model
@@ -19,13 +19,15 @@ type Product struct {
 
 func main() {
 	// for gorm setup you can refer to: https://gorm.io/docs/#Quick-Start
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
 	}
+	defer db.Close()
+
 	// reset product table
-	db.Migrator().DropTable(&Product{})
-	db.AutoMigrate(&Product{})
+	db.DropTableIfExists(Product{})
+	db.AutoMigrate(Product{})
 
 	// setup product with price 123
 	db.Create(&Product{Code: "A", Price: 123})

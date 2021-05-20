@@ -1,6 +1,6 @@
 package paginator
 
-import "github.com/pilagod/gorm-cursor-paginator/v2/internal/util"
+import "github.com/hashicorp/gorm-cursor-paginator/internal/util"
 
 // Rule for paginator
 type Rule struct {
