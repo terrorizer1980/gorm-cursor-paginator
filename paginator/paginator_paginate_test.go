@@ -181,6 +181,76 @@ func (s *paginatorSuite) TestPaginateSingleKey() {
 	s.assertForwardOnly(c)
 }
 
+// OrderAndItems is an aggregated model that includes
+// two simple models
+type OrderAndItems struct {
+	TestOrder
+	TestItem
+}
+
+// TableName provides the "primary" table for querying
+// an aggregated model OrderAndItems, table for the rest
+// of data will be joined in the query itself
+func (o OrderAndItems) TableName() string {
+	return "orders"
+}
+
+func (s *paginatorSuite) TestPaginateAggregatedModel() {
+	now := time.Now()
+	// ordered by CreatedAt desc -> 1, 3, 2
+	order1 := TestOrder{ID: 1, CreatedAt: now.Add(1 * time.Hour)}
+	s.givenOrders([]TestOrder{
+		order1,
+		{ID: 2, CreatedAt: now.Add(-1 * time.Hour)},
+		{ID: 3, CreatedAt: now},
+	})
+
+	s.givenItems(order1, 2)
+
+	cfg := Config{
+		Keys:  []string{"TestOrder.CreatedAt", "TestOrder.ID", "TestItem.ID"},
+		Limit: 2,
+	}
+
+	var p1 []OrderAndItems
+	db := s.db.Model(&OrderAndItems{}).
+		Select("orders.*, items.*").
+		Joins("left join items on items.order_id = orders.id")
+
+	_, c, err := New(&cfg).Paginate(db, &p1)
+	s.NoError(err)
+	s.Equal(2, len(p1))
+	s.Equal(1, p1[0].TestOrder.ID)
+	s.Equal(2, p1[0].TestItem.ID)
+	s.Equal(1, p1[1].TestOrder.ID)
+	s.Equal(1, p1[1].TestItem.ID)
+	s.assertForwardOnly(c)
+
+	var p2 []OrderAndItems
+	_, c, err = New(
+		&cfg,
+		WithAfter(*c.After),
+	).Paginate(db, &p2)
+	s.NoError(err)
+	s.Equal(2, len(p1))
+	s.Equal(3, p2[0].TestOrder.ID)
+	s.Equal(0, p2[0].TestItem.ID)
+	s.Equal(2, p2[1].TestOrder.ID)
+	s.Equal(0, p2[1].TestItem.ID)
+	s.assertBackwardOnly(c)
+
+	var p3 []OrderAndItems
+	_, c, _ = New(
+		&cfg,
+		WithBefore(*c.Before),
+	).Paginate(db, &p3)
+	s.Equal(1, p3[0].TestOrder.ID)
+	s.Equal(2, p3[0].TestItem.ID)
+	s.Equal(1, p3[1].TestOrder.ID)
+	s.Equal(1, p3[1].TestItem.ID)
+	s.assertForwardOnly(c)
+}
+
 func (s *paginatorSuite) TestPaginateMultipleKeys() {
 	now := time.Now()
 	// ordered by (CreatedAt desc, ID desc) -> 2, 3, 1
